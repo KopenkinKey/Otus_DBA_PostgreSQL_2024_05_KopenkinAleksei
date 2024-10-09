@@ -57,111 +57,72 @@
         ```bash
         sudo docker run -it --name pg-client --network pg-net -d bitnami/postgresql:15 psql -h pg-server -U postgres
         ```
-        * контейнер запустится в интерактивном режиме 
+        * контейнер запустился в интерактивном режиме 
         ![alt text](image-9.png)
 - подключится из контейнера с клиентом к контейнеру с сервером и сделать таблицу с парой строк
-    * подключаюсь к контейнеру pg-client и запускаю утилиту 'psql'.
-    ```bash
-    sudo docker exec -it pg-client psql -h pg-server -U postgres
-    ```
+    * подключаюсь к контейнеру pg-client и запускаю утилиту 'psql'
+        ```bash
+        sudo docker exec -it pg-client psql -h pg-server -U postgres
+        ```
     * необходимо ввести пароль от пользователя 'postgres'
     ![alt text](image-10.png)
     * Создаю таблицу и добавляю данные
-    ```SQL
-    CREATE TABLE persons(id serial, first_name text, second_name text);
-    INSERT INTO persons(first_name, second_name) VALUES('ivan', 'ivanov');
-    INSERT INTO persons(first_name, second_name) VALUES('petr', 'petrov');
-    ```
+        ```SQL
+        CREATE TABLE persons(id serial, first_name text, second_name text);
+        INSERT INTO persons(first_name, second_name) VALUES('ivan', 'ivanov');
+        INSERT INTO persons(first_name, second_name) VALUES('petr', 'petrov');
+        ```
     * Проверяю данные
-    ```SQL
-    SELECT * FROM persons;
-    ```
-    ![alt text](image-11.png)
+        ```SQL
+        SELECT * FROM persons;
+        ```
+        ![alt text](image-11.png)
 
 - подключится к контейнеру с сервером с ноутбука/компьютера извне инстансов GCP/ЯО/места установки докера
+    * Подключаюсь с компьютера через внешний адрес ВМ 
+        ```bash
+        psql -h 89.169.139.248 -U postgres
+        ```
+        ```SQL
+        SELECT * FROM persons;
+        ```
+    * Результат:\
+      ![alt text](image-12.png)
 - удалить контейнер с сервером
+    * удаляю контейнер с сервером
+    ```bash
+    sudo docker stop pg-server
+    sudo docker rm pg-server
+    sudo docker ps -a
+    ```
+    ![alt text](image-13.png)
 - создать его заново
+    * Создаю контейнер с именем pg-server и монтирую в него /var/lib/postgres
+    ```bash
+    sudo docker run --name pg-server --network pg-net  -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 -v /var/lib/postgres:/bitnami/postgresql bitnami/postgresql:15
+    ```
+    ![alt text](image-14.png)
 - подключится снова из контейнера с клиентом к контейнеру с сервером
+    * Подключаюсь к контейнеру pg-client и запускаю утилиту 'psql'
+        ```bash
+        sudo docker exec -it pg-client psql -h pg-server -U postgres
+        ```
+    * необходимо ввести пароль от пользователя 'postgres'
+    ![alt text](image-16.png)
 - проверить, что данные остались на месте
+    * Проверяю данные
+        ```SQL
+        SELECT * FROM persons;
+        ```
+        ![alt text](image-15.png)
 - оставляйте в ЛК ДЗ комментарии что и как вы делали и как боролись с проблемами
+    * для удобной работы создавал подсеть Docker, иначе не подключается по сетевому имени и нужно искать IP-адрес сервера
+    ```bash
+    sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' pg-server
+    ```
+    ![alt text](image-17.png)
 
 
 
 
 -------------------------------------------------------------------------------------------------------------
-
-- Установка Yandex.Cloud (CLI) https://cloud.yandex.ru/docs/cli/quickstart
-- Выполнить инициализацию Yandex.Cloud (CLI) https://yandex.cloud/ru/docs/cli/cli-ref/managed-yc/init
-
-
-для этого воспользуемся консолью 
-
-ssh -i D:\Keys\node3_key yc-alex@84.201.147.115
-yc compute ssh --name node2 --folder-id b1g32bcmj4hctvjuvnou
-
-
-- поставить на нем Docker Engine
-* Обновляю пакеты и установаю доп ПО
-    ```bash
-    sudo apt update
-    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common mc
-    ```
-    * Добавляю сертификат и репозиторий
-    ```bash
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-    ```
-    * Обновляю пакеты и устанавливаю Docker
-    ```bash
-    sudo apt update
-    sudo apt install -y docker-ce
-    ```
-    * Проверяю статус Docker
-    ```bash
-    sudo systemctl status docker
-    ```
-
-
-    Примечание- потом убрать
-
-- поставить на нем Docker Engine
-    * Обновляю пакеты и устанавливаю https://docs.docker.com/engine/install/ubuntu/
-    ```bash
-    sudo apt update
-    curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && rm get-docker.sh && sudo usermod -aG docker $USER && newgrp docker
-
-    sudo apt install -y docker.io mc
-    ```
-- развернуть контейнер с PostgreSQL 15 смонтировав в него /var/lib/postgresql
-    * Создаю контейнер с именем pg-server
-    ```bash
-    sudo docker run --name pg-server -e POSTGRES_PASSWORD=mypgpass -v /var/lib/postgres:/var/lib/postgresql/data -d -p 5432:5432 postgres:15
-
-    sudo docker run --name pg-server -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 -v /var/lib/postgreswsl:/bitnami/postgresql bitnami/postgresql:latest
-    ```
-Проверить Адрес контейнера
-
- sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' pg-server
-
-
-
-sudo docker run --name pg-server -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 -v /var/lib/postgreswsl:/bitnami/postgresql bitnami/postgresql:15
-
-
-- развернуть контейнер с клиентом postgres
-    * Создаю контейнер с именем pg-client
-        ```bash
-        sudo docker run --name pg-client --network pg-net  -e POSTGRES_PASSWORD=postgres -d bitnami/postgresql:15
-        ```
-        ```bash создать клиент в интерактивном режиме.
-        sudo docker run -it --name pg-client1 --network pg-net -d bitnami/postgresql:15 psql -h pg-server -U postgres
-        ```
-
-        ```bash 
-        docker run -it --rm --network pg-net -e PGPASSWORD=postgres bitnami/postgresql:15 psql -h pg-server -U postgres
-        ```
-        ```bash
-        docker run -it --rm --network pg-net --link pg-server:server bitnami/postgresql:15 psql -h server -U postgres
-        ```
-        ```
-         sudo docker run -it --name pg-client --network pg-net -d --link pg-server:server bitnami/postgresql:15 psql -h server -U postgres
