@@ -64,11 +64,13 @@ postgres=# insert into test values('1'); \
     ```
     ![alt text](image-5.png)
 - создайте новый диск к ВМ размером 10GB
-    > захожу в консоль ЯО https://console.yandex.cloud/folders/b1g32bcmj4hctvjuvnou/compute/instance/fv4b6oj3horc07arp6sa/disks и добавляю диск к виртуально машине размером 10 ГБ
+    > захожу в консоль ЯО https://console.yandex.cloud/ и добавляю диск к виртуально машине размером 10 ГБ\
+
     ![alt text](image-6.png)
 
 - добавьте свеже-созданный диск к виртуальной машине - надо зайти в режим ее редактирования и дальше выбрать пункт attach existing disk
     > добавляю созданый диск к ВМ
+    
     ![alt text](image-7.png)
     ![alt text](image-8.png)
 - проинициализируйте диск согласно инструкции и подмонтировать файловую систему, только не забывайте менять имя диска на актуальное, в вашем случае это скорее всего будет /dev/sdb https://www.digitalocean.com/community/tutorials/how-to-partition-and-format-storage-devices-in-linux
