@@ -70,7 +70,7 @@ postgres=# insert into test values('1'); \
 
 - добавьте свеже-созданный диск к виртуальной машине - надо зайти в режим ее редактирования и дальше выбрать пункт attach existing disk
     > добавляю созданый диск к ВМ
-    
+
     ![alt text](image-7.png)
     ![alt text](image-8.png)
 - проинициализируйте диск согласно инструкции и подмонтировать файловую систему, только не забывайте менять имя диска на актуальное, в вашем случае это скорее всего будет /dev/sdb https://www.digitalocean.com/community/tutorials/how-to-partition-and-format-storage-devices-in-linux
@@ -125,7 +125,7 @@ postgres=# insert into test values('1'); \
     sudo -u postgres pg_ctlcluster 15 main start
     ```
 - напишите получилось или нет и почему
-    > не удалось запустить кластер 
+    > не удалось запустить кластер \
     ![alt text](image-13.png)
 
 - задание: найти конфигурационный параметр в файлах раположенных в /etc/postgresql/15/main который надо поменять и поменяйте его
@@ -134,7 +134,7 @@ postgres=# insert into test values('1'); \
     sudo nano /etc/postgresql/15/main/postgresql.conf
     ```
 - напишите что и почему поменяли
-    > меняю значение парамера который указывает где хранятся данные : data_directory = '/mnt/data/15/main'
+    > меняю значение парамера который указывает где хранятся данные : data_directory = '/mnt/data/15/main' \
     ![alt text](image-14.png)
 - попытайтесь запустить кластер - sudo -u postgres pg_ctlcluster 15 main start
     > выполняю команду запуска кластера
@@ -171,7 +171,7 @@ postgres=# insert into test values('1'); \
     ![alt text](image-18.png)
 
     > Создаю новую виртуальную машину в ЯО с именем *node4*. \
-    > Отключаю виртуальный диск от *node3* и подключаю диск к *node4*
+    > Отключаю виртуальный диск от *node3* и подключаю диск к *node4* \
     ![alt text](image-19.png)
     ![alt text](image-20.png)
 
