@@ -122,7 +122,7 @@
 - вернитесь в базу данных testdb под пользователем postgres
     > в первом окне захожу пользователем *postgres* в базу *testdb*
     ```bash
-    psql -u postgres -p 5435 -d testdb
+    psql -u postgres -p 5435
     \c testdb
     ```
     ![alt text](image-17.png)
