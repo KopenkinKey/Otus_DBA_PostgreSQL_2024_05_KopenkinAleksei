@@ -106,7 +106,7 @@ sudo -u postgres pg_dump -d otus --create -Fc -Z 9 -f /tmp/backups/backup_otus_d
 
 * Используя утилиту pg_restore восстановим в новую БД только вторую таблицу!
 
-> оздаю новую базу данных **otus2**, создаю схему **my_schema** и запускаю восстановление второй таблицы **persons_two** из бэкап в кастомном сжатом формате в новую базу данных **otus2**
+> Cоздаю новую базу данных **otus2**, создаю схему **my_schema** и запускаю восстановление второй таблицы **persons_two** из бэкап в кастомном сжатом формате в новую базу данных **otus2**
 ```bash
 sudo -u postgres createdb -T template0 otus2 && sudo -u postgres psql -d otus2 -c "CREATE SCHEMA my_schema;" && sudo -u postgres pg_restore -d otus2 -n my_schema -t persons_two /tmp/backups/backup_otus_dump.gz
 ```
@@ -120,3 +120,15 @@ sudo -u postgres psql -d otus2 -c "SELECT * FROM my_schema.persons LIMIT 5;"
 > наглядно в DBeaver
 
 ![alt text](image-7.png)
+
+
+* Столкнулся с правами доступа к каталогу если использовать команду перенаправления вывода >
+```bash
+sudo -u postgres pg_dump -d otus --create -Fc -Z 9 > /tmp/backups/backup_otus_dump_test.gz
+```
+![alt text](image-8.png)
+> файл создается текущим пользователем и для того что бы успешно выгрузилась архивная копия,  у пользователя должны быть права на запись в этот каталог. \
+> можно выдать права всем командой
+```bash
+sudo chown 777:777 /tmp/backups
+```
