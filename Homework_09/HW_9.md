@@ -110,7 +110,7 @@ sudo -u postgres pg_dump -d otus --create -Fc -Z 9 -f /tmp/backups/backup_otus_d
 ```bash
 sudo -u postgres createdb -T template0 otus2 && sudo -u postgres psql -d otus2 -c "CREATE SCHEMA my_schema;" && sudo -u postgres pg_restore -d otus2 -n my_schema -t persons_two /tmp/backups/backup_otus_dump.gz
 ```
-> востановленна только втораятаблица
+> востановленна только вторая таблица
 ```bash
 sudo -u postgres psql -d otus2 -c "SELECT * FROM my_schema.persons_two LIMIT 5;"
 sudo -u postgres psql -d otus2 -c "SELECT * FROM my_schema.persons LIMIT 5;"
@@ -122,7 +122,7 @@ sudo -u postgres psql -d otus2 -c "SELECT * FROM my_schema.persons LIMIT 5;"
 ![alt text](image-7.png)
 
 
-* Столкнулся с правами доступа к каталогу если использовать команду перенаправления вывода >
+* Столкнулся проблемой отсутствия прав доступа к каталогу если использовать команду перенаправления вывода > 
 ```bash
 sudo -u postgres pg_dump -d otus --create -Fc -Z 9 > /tmp/backups/backup_otus_dump_test.gz
 ```
