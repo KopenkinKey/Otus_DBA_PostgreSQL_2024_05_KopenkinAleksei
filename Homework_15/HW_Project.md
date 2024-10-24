@@ -134,6 +134,7 @@ echo "10.131.0.25  pp-node-1" | sudo tee -a /etc/hosts
 echo "10.131.0.32  pp-node-2" | sudo tee -a /etc/hosts
 echo "10.131.0.3  pp-node-3" | sudo tee -a /etc/hosts
 echo "10.131.0.4  haproxy-1" | sudo tee -a /etc/hosts
+echo "10.131.0.34  zabbix-1" | sudo tee -a /etc/hosts
 ```
 
 * Установливаю **PostgreSQL 16** с дефолтными настройками на серверах **pp-node-1**, **pp-node-2**, **pp-node-3** 
@@ -826,3 +827,94 @@ nano /var/lib/postgresql/.pgpass
 localhost:5432:*:repl:mypassword
 ```
 На этом настройка резерного копирования закончена
+
+
+
+Настроить мониторинг
+на новом сервере
+
+Установливаю и конфигурирую Zabbix для выбранной платформы
+a. Переключаюсь на  пользователя root
+Start new shell session with root privileges.
+```bash
+$ sudo -s
+```
+b. Установиливаю репозиторий Zabbix
+```bash
+wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu22.04_all.deb
+dpkg -i zabbix-release_latest+ubuntu22.04_all.deb
+apt update
+```
+c. Установливаю Zabbix сервер, веб-интерфейс и агент
+```bash
+apt install zabbix-server-pgsql zabbix-frontend-php php8.1-pgsql zabbix-nginx-conf zabbix-sql-scripts zabbix-agent
+```
+d. Создаю базу данных
+
+Установливаю и запускаю сервер базы данных.
+```bash
+apt update && sudo apt upgrade -y -q && sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - && sudo apt-get update && sudo apt -y install postgresql-16 postgresql-contrib-16
+
+sudo -u postgres createuser --pwprompt zabbix
+sudo -u postgres createdb -O zabbix zabbix
+```
+
+На хосте Zabbix сервера импортируую начальную схему и данные. Будет предложено ввести недавно созданный пароль.
+```bash
+zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
+```
+e. Настриваю базу данных для Zabbix сервера
+Редактирую файл 
+```bash
+nano /etc/zabbix/zabbix_server.conf
+```
+```
+DBPassword=password
+```
+f. Настраиваю PHP для веб-интерфейса
+Редактирую файл /etc/zabbix/nginx.conf раскомментирую и настрою директивы 'listen' и 'server_name'.
+```bash
+nano /etc/zabbix/nginx.conf
+
+# listen 8080;
+# server_name 51.250.42.178;
+```
+g. Запускаю процессы Zabbix сервера и агента и настриваю их запуск при загрузке ОС.
+```bash
+systemctl restart zabbix-server zabbix-agent nginx php8.1-fpm
+systemctl enable zabbix-server zabbix-agent nginx php8.1-fpm
+```
+h. Открываю веб-страницу Zabbix UI http://51.250.42.178:8080/    Выполняю первоначальные настройки
+
+
+-----
+Установливаю и конфигурирую Zabbix для выбранной платформы
+а. переключаюсь на root пользователя
+```bash
+sudo -s
+```
+б. Установиливаю репозиторий Zabbix
+```bash
+wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu22.04_all.deb
+dpkg -i zabbix-release_latest+ubuntu22.04_all.deb
+apt update
+```
+c. Установливаю Заббикс aгент2
+```bash
+apt install zabbix-agent2 zabbix-agent2-plugin-*
+```
+d. Настраиваю Zabbix-агента, редактирую файл конфигурации:
+```bash
+nano /etc/zabbix/zabbix_agent2.conf
+```
+Меняю следующие строки:
+```plaintext
+Server=10.131.0.34
+Hostname=zabbix-1
+
+```
+Перезапускаю процесс Zabbix агента2 и настраиваю его запуск при загрузке ОС.
+```bash
+systemctl restart zabbix-agent2
+systemctl enable zabbix-agent2
+```
