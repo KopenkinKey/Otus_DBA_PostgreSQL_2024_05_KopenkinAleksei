@@ -17,7 +17,7 @@
 
 Создание кластера PostgreSQL с использованием Patroni и etcd в Яндекс Облаке — задача, требующая внимательной подготовки и настройки. Давайте пройдёмся по шагам, необходимым для успешной реализации проекта.
 
-Шаг 1: Подготовка серверов в Яндекс Облаке
+### Шаг 1: Подготовка серверов в Яндекс Облаке
 
 
 * Захожу в консоль управления ЯО https://console.yandex.cloud/folders/b1g32bcmj4hctvjuvnou/compute/instances \
@@ -27,6 +27,8 @@
 ![alt text](image.png)
 > Общая схема кластера
 ![alt text](image-14.png)
+
+### Шаг 2. Настраиваю **etcd** кластер
 
 > Подключаюсь к серверам **etcd** и устанавливаю необходимые пакеты
 * Подкючение к серверам
@@ -52,9 +54,9 @@ echo "10.131.0.3  pp-node-3" | sudo tee -a /etc/hosts
 echo "10.131.0.4  haproxy-1" | sudo tee -a /etc/hosts
 
 ```
-3. Настраиваю etcd кластера:
 
-Редактирую файл конфигурации etcd /etc/default/etcd: В конце файла добавляю на **node1**
+
+Редактирую файл конфигурации etcd /etc/default/etcd: В конце файла добавляю на **etcd-node-1**
 ```bash
 sudo nano /etc/default/etcd
 ```
@@ -70,7 +72,7 @@ ETCD_INITIAL_CLUSTER_STATE="new"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-patroni-claster"
 
 ```
-Редактирую файл конфигурации etcd /etc/default/etcd: В конце файла добавляю на **node2**
+Редактирую файл конфигурации etcd /etc/default/etcd: В конце файла добавляю на **etcd-node-2**
 ```bash
 sudo nano /etc/default/etcd
 ```
@@ -86,7 +88,7 @@ ETCD_INITIAL_CLUSTER_STATE="new"
 ETCD_INITIAL_CLUSTER_TOKEN="etcd-patroni-claster"
 
 ```
-Редактирую файл конфигурации etcd /etc/default/etcd: В конце файла добавляю на **node3**
+Редактирую файл конфигурации etcd /etc/default/etcd: В конце файла добавляю на **etcd-node-3**
 ```bash
 sudo nano /etc/default/etcd
 ```
@@ -104,6 +106,7 @@ ETCD_INITIAL_CLUSTER_TOKEN="etcd-patroni-claster"
 ```
 
 Запуск etcd:
+
 Перезапускаю службу etcd на всех ВМ:
 ```bash
 sudo systemctl restart etcd
@@ -122,9 +125,10 @@ yc-user@etcd-node-1:~$ etcdctl member list
 ```
 ![alt text](image-1.png)
 
+### Шаг 3. Настраиваю **patroni** и **postgresql** кластер
 
-> Подключаюсь к серверам **patroni** и устанавливаю необходимые пакеты
-* Подкючение к серверам
+> Подключаюсь к серверам **pp-node-1**, **pp-node-2**, **pp-node-3** 
+* Подкючение к серверам по ssh
     ```bash 
     ssh -i .ssh\yc_key yc-user@51.250.46.233
     ssh -i .ssh\yc_key yc-user@130.193.35.200
@@ -139,22 +143,21 @@ echo "10.131.0.25  pp-node-1" | sudo tee -a /etc/hosts
 echo "10.131.0.32  pp-node-2" | sudo tee -a /etc/hosts
 echo "10.131.0.3  pp-node-3" | sudo tee -a /etc/hosts
 echo "10.131.0.4  haproxy-1" | sudo tee -a /etc/hosts
+```
 
-
-* Установливаю PostgreSQL 16 с дефолтными настройками на серверах pp-node-1, pp-node-2, pp-node-3
+* Установливаю **PostgreSQL 16** с дефолтными настройками на серверах **pp-node-1**, **pp-node-2**, **pp-node-3** 
 ```bash
 sudo apt update && sudo apt upgrade -y -q && sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - && sudo apt-get update && sudo apt -y install postgresql-16 postgresql-contrib-16
 ```
 
-* Установливаю нужные зависимости и сам Patroni на серверах pp-node-1, pp-node-2, pp-node-3
+* Установливаю нужные зависимости и сам **Patroni** на серверах **pp-node-1**, **pp-node-2**, **pp-node-3** 
 ```bash
 sudo apt install python3-pip python3-psycopg2 
 sudo pip3 install patroni[etcd]
 ```
+3.1. Настройка **patroni**
 
-Установка и настройка Patroni
-
-Создаю на **pp-node-1** файл конфигурации Patroni /etc/patroni.yml и вставляю в конце файла
+Создаю на **pp-node-1** файл конфигурации Patroni /etc/patroni.yml и вставляю в файл следующие данные
 ```bash
 sudo nano /etc/patroni.yml
 ```
@@ -270,7 +273,7 @@ postgresql:
     port: 5432
 ```
 
-Создаю на **pp-node-2** файл конфигурации Patroni /etc/patroni.yml и вставляю в конце файла
+Создаю на **pp-node-2** файл конфигурации Patroni /etc/patroni.yml и вставляю в файл следующие данные
 ```bash
 sudo nano /etc/patroni.yml
 ```
@@ -386,7 +389,7 @@ postgresql:
   parameters:
     port: 5432
 ```
-Создаю на **pp-node-3** файл конфигурации Patroni /etc/patroni.yml и вставляю в конце файла
+Создаю на **pp-node-3** файл конфигурации Patroni /etc/patroni.yml и вставляю в файл следующие данные
 ```bash
 sudo nano /etc/patroni.yml
 ```
@@ -508,7 +511,7 @@ tags:
     clonefrom: false
     nosync: false
 ```
-* на серверах на серверах pp-node-1, pp-node-2, pp-node-3 необходимо удалить кластер postgres созданный по умолчанию
+3.2.  на серверах **pp-node-1**, **pp-node-2**, **pp-node-3** необходимо удалить кластер postgres созданный по умолчанию, в дальнейшем кластером будет управлять **patroni**
 ```bash
 pg_lscluster
 
@@ -516,7 +519,7 @@ pg_lscluster
 # 16  main    5432 online postgres /var/lib/postgresql/16/main /var/log/postgresql/postgresql-16-main.log
 ```
 
-если кластер существует. то удвляем командой
+кластер по умолчанию существует, удаляю командой и создаю каталог
 ```bash
 sudo pg_ctlcluster 16 main stop && sudo pg_dropcluster 16 main 
 sudo su - postgres
@@ -525,7 +528,7 @@ exit
 ```
 
 
-3. Запуск Patroni:
+3.3:  Создание службы Patroni:
 
 Создаю службу systemd для Patroni: на серверах 
 ```bash
@@ -566,7 +569,7 @@ Restart=no
 WantedBy=multi-user.target
 ```
 
-
+3.4. Запуск Patroni
 Запускаю и включаю службу Patroni на сервере pp-node-1
 
 ```bash
@@ -610,6 +613,8 @@ patronictl -c /etc/patroni.yml reinit pg-patroni-cluster pp-node-3
 
 > Кластер успешно запущен\
 
+3.5. тестирование кластера Patroni\
+
 Модделирую отсановку первой ноды остановкой службы **patroni**
 ```bash
 pp-node-1:~$ sudo systemctl stop patroni
@@ -629,13 +634,14 @@ watch -n1 patronictl -c /etc/patroni.yml list
 ![alt text](image-8.png)
 
 
-4. Настраиваю сервер **haproxy-1**
+### Шаг 4. Настраиваю сервер **haproxy-1** 
+
 > Подключаюсь к серверу **haproxy-1** и устанавливаю необходимые пакеты
 * Подкючение к серверам
     ```bash 
     ssh -i .ssh\yc_key yc-user@84.252.134.104
     ```
-* Настраиваю IP-адресацию. Записываю IP-адреса в файл hosts на каждой ВМ:
+* Настраиваю IP-адресацию. Записываю IP-адреса в файл hosts:
 ```bash
 echo "10.131.0.30  etcd-node-1" | sudo tee -a /etc/hosts
 echo "10.131.0.37  etcd-node-2" | sudo tee -a /etc/hosts
@@ -727,12 +733,12 @@ psql -h haproxy-1 -p 15432 -U postgres
 
 таблица создана. \
 
-HAProxy предоставляет веб-интерфейс для мониторинга и управления. 
+> HAProxy предоставляет веб-интерфейс для мониторинга и управления. 
 http://84.252.134.104:7000/haproxy?stats
 
 ![alt text](image-10.png)
 
-5. Резервное копирование
+### Шаг 5. Резервное копирование
 
 > для резервных копий создам диск и примонтирую к серверу pp-node-3
 ![alt text](image-12.png)
