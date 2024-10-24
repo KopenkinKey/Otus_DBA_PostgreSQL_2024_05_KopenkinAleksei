@@ -1,9 +1,0 @@
-10.131.0.30 etcd-node-1
-10.131.0.37 etcd-node-2
-10.131.0.17 etcd-node-3
-
-10.131.0.25 pp-node-1
-10.131.0.32 pp-node-2
-10.131.0.3 pp-node-3
-
-10.131.0.3 pp-haproxy-1
